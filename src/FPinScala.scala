@@ -54,6 +54,7 @@ object FPinScala extends App {
 
   val l2 = MyList(5, 4, 3, 2)
   println(vectorSum(l, l2))
+  println(vectorSum(l, l2))
 
   println(MyList.zipWith(l, dl)(_ * _))
   println(hasSubSequence(List(1, 2, 3, 4, 5, 6), List(2, 3, 4)))
@@ -115,4 +116,25 @@ object FPinScala extends App {
   println(s.flatMap(x => MyStream((1 to x): _*)).safeToList)
 
   println(MyStream.constant(3).take(4).safeToList)
+  println(MyStream.from(3).take(4).safeToList)
+  println(MyStream.fibs.take(10).safeToList)
+
+  println(MyStream.fibsViaUnfold.take(10).safeToList)
+  println(MyStream.fromViaUnfold(3).take(4).safeToList)
+  println(MyStream.constantViaUnfold(3).take(4).safeToList)
+
+  println(s.mapViaUnfold(2 * _).safeToList)
+  println(s.takeViaUnfold(3).safeToList)
+  println(s.takeWhileViaUnfold(_ < 3).safeToList)
+
+  println(s.zipWith(s)(_ * _).safeToList)
+  println(
+    MyStream.fibs.take(5)
+    .zipAll(MyStream.fibs.take(3))
+    .safeToList
+  )
+
+  println(s.startsWith(s.take(3)))
+  println(s.tails.map(_.safeToList).safeToList)
+  println(s hasSubsequence s.drop(1))
 }

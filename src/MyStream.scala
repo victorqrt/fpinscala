@@ -78,6 +78,50 @@ sealed trait MyStream[+A] {
 
   def flatMap[B](f: A => MyStream[B]): MyStream[B] =
     foldRight(MyStream.empty[B])((a, b) => f(a) append b)
+
+  def mapViaUnfold[B](f: A => B): MyStream[B] =
+    MyStream.unfold(this) {
+      case MyCons(h, t) => Some((f(h()), t()))
+      case _ => None
+    }
+
+  def takeViaUnfold(n: Int): MyStream[A] =
+    MyStream.unfold((this, n)) {
+      case (MyCons(h, t), n) if n > 0 => Some((h(), (t(), n - 1)))
+      case _ => None
+    }
+
+  def takeWhileViaUnfold(p: A => Boolean) =
+    MyStream.unfold(this) {
+      case MyCons(h, t) if p(h()) => Some((h(), t()))
+      case _ => None
+    }
+
+  def zipWith[B, C](bs: MyStream[B])(f: (A, B) => C) =
+    MyStream.unfold((this, bs)) {
+      case (MyCons(h1, t1), MyCons(h2, t2)) => Some((f(h1(), h2()), (t1(), t2())))
+      case _ => None
+    }
+
+  def zipAll[B](bs: MyStream[B]) =
+    MyStream.unfold((this, bs)) {
+      case (MyCons(h1, t1), MyCons(h2, t2)) => Some((Some(h1()), Some(h2())), (t1(), t2()))
+      case (MyCons(h, t), _) => Some((Some(h()), None), (t(), MyStream.empty))
+      case (_, MyCons(h, t)) => Some((None, Some(h())), (MyStream.empty, t()))
+      case _ => None
+    }
+
+  def startsWith[A](s: MyStream[A]): Boolean = zipWith(s)(_ == _).forAll(_ == true)
+
+  def tails: MyStream[MyStream[A]] =
+    MyStream.unfold(this) {
+      case s @ MyCons(_, t) => Some((s, t()))
+      case _ => None
+    }
+
+  def hasSubsequence[A](s: MyStream[A]): Boolean = tails exists (_ startsWith s)
+
+  def scanRight = ??? // TODO
 }
 
 case object MyEmpty extends MyStream[Nothing]
@@ -99,5 +143,24 @@ object MyStream {
 
   def constant[A](a: A): MyStream[A] = MyStream.cons(a, constant(a))
 
-  // TODO def from(n: Int): MyStream[Int] = MyStream.cons(
+  def from(n: Int): MyStream[Int] = MyStream.cons(n, from(n + 1))
+
+  val fibs = {
+    def go(f0: Int, f1: Int): MyStream[Int] = MyStream.cons(f0, go(f1, f0 + f1))
+    go(0, 1)
+  }
+
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): MyStream[A] =
+    f(z) match {
+      case Some((a, s)) => MyStream.cons(a, unfold(s)(f))
+      case None => MyStream.empty[A]
+    }
+
+  def fibsViaUnfold = unfold[Int, (Int, Int)](0, 1) {
+    case (f0, f1) => Some((f0, (f1, f0 + f1)))
+  }
+
+  def fromViaUnfold(n: Int) = unfold[Int, Int](n)(x => Some(x, x + 1))
+
+  def constantViaUnfold[A](a: A) = unfold[A, A](a)(Some(a, _))
 }
