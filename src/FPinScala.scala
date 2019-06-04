@@ -1,6 +1,7 @@
 import MyEither._
 import MyList._
 import MyOption._
+import MyRNG._
 import MyStream._
 import Tree._
 
@@ -137,4 +138,12 @@ object FPinScala extends App {
   println(s.startsWith(s.take(3)))
   println(s.tails.map(_.safeToList).safeToList)
   println(s hasSubsequence s.drop(1))
+
+  println(s.scanRight(0)(_ + _).safeToList)
+
+  val rng = new MySimpleRNG(-42)
+  println(MyRNG.ints(5)(rng))
+
+  val randSeq = MyRNG.sequence(List(MyRNG.int, MyRNG.nonNegativeEven))
+  println(randSeq(rng))
 }

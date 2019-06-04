@@ -121,7 +121,16 @@ sealed trait MyStream[+A] {
 
   def hasSubsequence[A](s: MyStream[A]): Boolean = tails exists (_ startsWith s)
 
-  def scanRight = ??? // TODO
+  // We are yielding a pair of (B, MyStream[B]) as we want the fold to yield a stream
+  // but we also keep the previous result to avoid recomputing it
+  def scanRight[B](z: B)(f: (A, => B) => B): MyStream[B] =
+    foldRight((z, MyStream(z)))(
+      (a, _b) => {
+        lazy val b = _b
+        val result = f(a, b._1)
+        (result, MyStream.cons(result, b._2))
+      }
+    )._2
 }
 
 case object MyEmpty extends MyStream[Nothing]
