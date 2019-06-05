@@ -82,6 +82,29 @@ object MyRNG {
     ras.foldRight(unit(List[A]()))(
       (r1, r2) => map2(r1, r2)(_ :: _)
     )
+
+  def flatMap[A, B](f: Rand[A])(g: A => Rand[B]): Rand[B] =
+    rng => {
+      val (a, _rng) = f(rng)
+      g(a)(_rng)
+    }
+
+  def nonNegativeLessThan(n: Int): Rand[Int] =
+    flatMap(nonNegativeInt) {
+      x => {
+        val mod = x % n
+        if (x + n - 1 - mod >= 0) unit(mod) else nonNegativeLessThan(n)
+      }
+    }
+
+  def mapViaFlatMap[A, B](s: Rand[A])(f: A => B): Rand[B] =
+    flatMap(s)(
+      x => unit[B](f(x))
+    )
+
+  def map2ViaFlatMap[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
+    flatMap(ra)(a => mapViaFlatMap(rb)(b => f(a, b)))
+
 }
 
 final case class MySimpleRNG(seed: Long) extends MyRNG {

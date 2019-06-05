@@ -2,6 +2,7 @@ import MyEither._
 import MyList._
 import MyOption._
 import MyRNG._
+import MyState._
 import MyStream._
 import Tree._
 
@@ -141,9 +142,12 @@ object FPinScala extends App {
 
   println(s.scanRight(0)(_ + _).safeToList)
 
-  val rng = new MySimpleRNG(-42)
+  val rng = new MySimpleRNG(42)
   println(MyRNG.ints(5)(rng))
 
-  val randSeq = MyRNG.sequence(List(MyRNG.int, MyRNG.nonNegativeEven))
-  println(randSeq(rng))
+  val intsViaSeq = MyRNG.sequence(List.fill(5)(MyRNG.int))
+  println(intsViaSeq(rng))
+
+  val rollDie = MyRNG.map(MyRNG.nonNegativeLessThan(6))(_ + 1)
+  println(rollDie(rng))
 }
