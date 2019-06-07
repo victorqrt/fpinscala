@@ -150,4 +150,8 @@ object FPinScala extends App {
 
   val rollDie = MyRNG.map(MyRNG.nonNegativeLessThan(6))(_ + 1)
   println(rollDie(rng))
+
+  val m = Machine(true, 5, 0)
+  val sim = Machine.simulateMachine(Coin :: Turn :: Coin :: Nil)
+  println(sim.run(m))
 }
