@@ -1,6 +1,7 @@
 import MyEither._
 import MyList._
 import MyOption._
+import MyPar._
 import MyRNG._
 import MyState._
 import MyStream._
